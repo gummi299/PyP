@@ -50,7 +50,7 @@ ratio_list=[]
 def pltconfig_default():
     sns.reset_defaults()
 
-def xy(x,y): 
+def xy(x,y): # 성별 pie 차트 함수
     pltconfig_default()
     print(ratio)
     labels = [s_list[0],s_list[1]]
@@ -65,7 +65,7 @@ def xy(x,y):
     plt.savefig(filename)
     plt.close()
 
-def xy_2(x,y): 
+def xy_2(x,y): # 연령별 pie 차트 함수
     pltconfig_default()
     print(ratio)
     labels = [ag_list[0],ag_list[1],ag_list[2],ag_list[3],ag_list[4],ag_list[5],ag_list[6],ag_list[7],ag_list[8]]
@@ -79,7 +79,7 @@ def xy_2(x,y):
     plt.savefig(filename)
     plt.close()
 
-def xy_3(x,y): 
+def xy_3(x,y): # 연령별 막대 차트 함수
     pltconfig_default()
     print(ratio)
     labels = [ag_list[0],ag_list[1],ag_list[2],ag_list[3],ag_list[4],ag_list[5],ag_list[6],ag_list[7],ag_list[8]]
@@ -107,6 +107,7 @@ def xy_3(x,y):
     plt.savefig(filename)
     plt.close()
 
+##---API 함수 시작---##
 def GetAPI(setDate):
     global nameList
     global indexList
@@ -124,24 +125,30 @@ def GetAPI(setDate):
     global ratio_2
 
     if setDate==True:
+    #API 불러올 날짜 설정
         if datetime.today().hour>=15:
             apidate=datetime.today().strftime("%Y%m%d")
         else:
             yesterday = datetime.today() - timedelta(1)
             apidate=yesterday.strftime("%Y%m%d")
     displaydate=datetime.strptime(apidate,"%Y%m%d").strftime("%Y-%m-%d")
+    #API 호출 링크
     apikey="API_KEY"
     Url ='http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19GenAgeCaseInfJson?serviceKey=' + apikey + '&pageNo=1&numOfRows=10&startCreateDt=' + apidate + '&endCreateDt=' +apidate
 
+    #API 받아오기
     res = requests.get(Url).text
 
+    #API XML로 변환
     xmlobj = bs4.BeautifulSoup(res, 'lxml-xml')
     rows = xmlobj.findAll('item')
 
+    #API 세부 값 받아올 배열
     rowList = []
     columnList = []
     apinameList=[]
 
+    #API 세부 값 불러오기
     rowsLen = len(rows)
     for i in range(0, rowsLen):
         columns = rows[i].find_all()
@@ -154,24 +161,31 @@ def GetAPI(setDate):
         rowList.append(columnList)
         columnList = []    
 
+    #결과값 변수 = result
     result = pd.DataFrame(rowList, columns=nameList,index=indexList)
+##---API 함수 끝---##
 
+#API 불러오기
 GetAPI(True)
 
-client= commands.Bot(command_prefix='/') 
-token="DISCORD_BOT_TOKEN"
+#디스코드 봇
+client= commands.Bot(command_prefix='/') #discord.Client()
+token="BOT_TOKEN"
 
+#디스코드 봇 로그인 부분
 @client.event
 async def on_ready():
     print("다음으로 로그인 합니다")
     print(client.user.name)
     print(client.user.id)
 
+#디스코드 봇 명령어 처리 부분
 @client.command()
 async def 코로나(ctx,*txt):
     commandtype=txt[0]
     gubun=txt[1]
     if commandtype=='구분':
+        #입력된 구분의 통계가 존재하면
         if gubun in indexList:
             embed=discord.Embed(title='코로나 ' + emojiList[indexList.index(gubun)] + gubun +  ' 통계')
             embed.set_footer(text='코로나알리미👀')
@@ -195,7 +209,7 @@ async def 코로나(ctx,*txt):
                     txt=txt + '\n' + nameList[i] + ': ' + result.loc[indexList[s]][nameList[i]]
                 embed.add_field(name=emojiList[s] + indexList[s],value=txt,inline=True)
             await ctx.send(embed=embed)
-        else:
+        else: #존재하지 않으면
             embed=discord.Embed(title='아쉽지만 ' + gubun + ' 라는 구분은 존재하지 않습니다...')
             embed.add_field(name="사용 가능한 구분",value='`' + "`, `".join(indexList) + '`')
             embed.set_footer(text='코로나알리미👀')
@@ -203,6 +217,7 @@ async def 코로나(ctx,*txt):
     
     
     if commandtype=='통계':
+        #입력된 구분의 통계가 존재하면
         if gubun in nameList:
             lis=result[gubun]
             embed=discord.Embed(title='코로나 ' + gubun + ' 통계')
@@ -224,7 +239,7 @@ async def 코로나(ctx,*txt):
                     txt=txt + '\n' + emojiList[i] + indexList[i] + ': ' + result.loc[indexList[i]][nameList[s]]
                 embed.add_field(name=nameList[s],value=txt,inline=True)
             await ctx.send(embed=embed)
-        else: 
+        else: #존재하지 않으면       
             embed=discord.Embed(title='아쉽지만 ' + gubun + ' 에 대한 통계는 존재하지 않습니다...')
             embed.add_field(name="사용 가능한 통계",value='`' + "`, `".join(nameList) + '`')
             embed.set_footer(text='코로나알리미👀')
@@ -236,9 +251,10 @@ async def 코로나(ctx,*txt):
         chart_1=txt[1]
         chart_2=txt[2]
         if commandtype=='차트':
+            #입력된 구분의 차트가 존재하면
             if chart_1 in chartList_1: 
                 if chart_2 in chartList_2:
-                    if chart_1==chartList_1[0]:
+                    if chart_1==chartList_1[0]: #CHART_1==성별 
                         x=0
                         for q in range(3):
                             q_2=q
@@ -261,7 +277,7 @@ async def 코로나(ctx,*txt):
                                 embed.set_image(url="attachment://"+filename)
                                 await ctx.send(embed = embed,file=image)
                 
-                    elif chart_1==chartList_1[1]:
+                    elif chart_1==chartList_1[1]: #CHART_1=연령별 
                         ratio_list=[]
                         x=1
                         for q in range(3):
@@ -293,7 +309,7 @@ async def 코로나(ctx,*txt):
                                     await ctx.send(embed = embed,file=image)
                                     
 
-                                elif chart_2==chartList_2[2]: 
+                                elif chart_2==chartList_2[2]:     #치명률 차트
                                     for i in range(len(ag_list)):
                                                                         
                                         criticalRate=float(str(result.loc[ag_list[i],chartList_2[2]]))
@@ -313,18 +329,19 @@ async def 코로나(ctx,*txt):
                                     print(filename)
                                     embed.set_image(url="attachment://"+filename)
                                     await ctx.send(embed = embed,file=image)
-                else:     
+                else: #존재하지 않으면       
                         embed=discord.Embed(title='아쉽지만 ' + gubun + ' 에 대한 차트는 존재하지 않습니다...')
                         embed.add_field(name="사용 가능한 통계",value='`' + "`, `".join(chartList_2) + '`')
                         embed.set_footer(text='코로나알리미👀')
                         await ctx.send(embed=embed)
-            else:  
+            else: #존재하지 않으면       
                     embed=discord.Embed(title='아쉽지만 ' + gubun + ' 에 대한 차트는 존재하지 않습니다...')
                     embed.add_field(name="사용 가능한 통계",value='`' + "`, `".join(chartList_1) + '`')
                     embed.set_footer(text='코로나알리미👀')
                     await ctx.send(embed=embed)
 
 
+#도움말 명령어
 @client.command()
 async def 도움말(ctx):
     embed=discord.Embed(title='도움말')
@@ -337,6 +354,7 @@ async def 도움말(ctx):
     embed.add_field(name='/api setdate `[date]`',value='api로 받아올 데이터의 날짜를 설정합니다. \n `YYYYMMDD` 형식으로 입력해야 합니다. (예시:`' + apidate +'`)',inline=False)
     await ctx.send(embed=embed)
 
+#api 명령어
 @client.command()
 async def api(ctx,commandtype,param):
     global apidate
@@ -353,6 +371,7 @@ async def api(ctx,commandtype,param):
         await ctx.send(embed=embed)
 
 
+#명령어 오류 처리
 @코로나.error
 async def 코로나_error(ctx,error):
     embed=discord.Embed(title='`/도움말`을 참고해주세요.',description=str(error))
@@ -364,5 +383,6 @@ async def api_error(ctx,error):
     embed.set_footer(text='코로나알리미👀')
     await ctx.send(embed=embed)
 
+#디스코드 봇 실행
 client.run(token)
 
