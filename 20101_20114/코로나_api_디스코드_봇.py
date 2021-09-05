@@ -169,7 +169,7 @@ def GetAPI(setDate):
 GetAPI(True)
 
 #디스코드 봇
-client= commands.Bot(command_prefix='/') #discord.Client()
+client= commands.Bot(command_prefix='/') #명령어 접두어
 token="BOT_TOKEN"
 
 #디스코드 봇 로그인 부분
