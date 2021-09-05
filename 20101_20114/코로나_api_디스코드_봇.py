@@ -1,7 +1,7 @@
 from os import name
 from urllib.parse import urlencode, quote_plus #인터넷 관련
 from bs4 import BeautifulSoup
-from discord import file #XML 관련
+from discord import file 
 from discord.ext import commands #디스코드 봇 커맨드 관련
 from datetime import datetime,timedelta
 import matplotlib
